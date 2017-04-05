@@ -9,7 +9,8 @@
 
 int main(int argc, char *argv[]) {
   int sock, newsock, serverlen, clientlen;
-  int port = 80;
+  int port = 8080;
+  char buf[256];
   struct sockaddr_in self, server, client;
   struct sockaddr *serverptr, *clientptr;
   struct hostent *rem;
@@ -54,6 +55,13 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
     printf("Accepted connection from %s\n", rem->h_name);
+    
+    bzero(buf, sizeof buf); /* Initialize buffer */
+    if (read(newsock, buf, sizeof buf) < 0) { /* Receive message */
+        perror("read");
+        exit(1);
+     }
+     printf("Read string: %s\n", buf);
     close(newsock);
   }
   close(sock);
