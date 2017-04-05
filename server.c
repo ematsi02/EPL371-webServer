@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[]) {
   int sock, newsock, serverlen, clientlen;
@@ -14,6 +15,14 @@ int main(int argc, char *argv[]) {
   struct sockaddr_in self, server, client;
   struct sockaddr *serverptr, *clientptr;
   struct hostent *rem;
+  char *answerCode="HTTP/1.1 ";
+  char *serverName="\r\nServer: ";
+  char *contentLen="\r\nContent-Length: ";
+  char *connection="\r\nConnection: ";
+  char *contentType="\r\nContent-Type: ";
+  //char* buf501="HTTP/1.1 501 Not Implemented\r\nServer:%s"+"\r\nContent-Length:%d"+"\r\nConnection:%s"+"\r\nContent-Type:%s"+"\r\n\r\n";
+  char* buf501="HTTP/1.1 501 Not Implemented\r\nServer: myServer\r\nContent-Length: 24\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\nMethod not implemented!\n";
+  char* content501="\r\n\r\nMethod not implemented!\n";
   
 
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -69,7 +78,8 @@ int main(int argc, char *argv[]) {
       action = strtok(buf, " ");
     }
     else {
-
+      // send(newsock,strcat(answerCode,"Not Implemented"),strlen(answerCode)+15,0);
+	    write(newsock,buf501,strlen(buf501));
     }
   }
    close(newsock);
