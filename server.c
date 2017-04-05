@@ -5,37 +5,34 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 
 int main(int argc, char *argv[]) {
   int sock, newsock, serverlen, clientlen;
-  int port = 8080;
-  char buf[256];
+  char buf [256], *action;
+  int port = 30000;
   struct sockaddr_in self, server, client;
   struct sockaddr *serverptr, *clientptr;
   struct hostent *rem;
   
 
-  if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     perror("socket");
     exit(1);
   }
 
-  bzero(&self, sizeof(self));
-  server.sin_family = AF_INET; /*Internet domain*/
-  server.sin_addr.s_addr = htonl(INADDR_ANY); /*My Internet address*/
+  server.sin_family = AF_INET; 
+  server.sin_addr.s_addr = htonl(INADDR_ANY); 
   server.sin_port = htons(port); 
   serverptr = (struct sockaddr *) &server;
   serverlen = sizeof(server);
 
-  /*Bind socket to address*/
-  if (bind(sock, (struct sockaddr*)&self, sizeof(self)) < 0) {
-    perror("bind");
+  if (bind(sock, serverptr, serverlen) < 0) {
+      perror("bind");
     exit(1);
   }
 
-  /*Listen for connections*/
-  if (listen(sock, 5) < 0) { /*5 max requests in queue*/
+  if (listen(sock, 5) < 0) { 
     perror("listen");
     exit(1);
   }
@@ -44,7 +41,6 @@ int main(int argc, char *argv[]) {
     clientptr = (struct sockaddr *) &client;
     clientlen = sizeof(client);
 
-    /*Accept connection*/
     if ((newsock = accept(sock, clientptr, &clientlen)) < 0) {
       perror("accept");
       exit(1);
@@ -56,14 +52,27 @@ int main(int argc, char *argv[]) {
     }
     printf("Accepted connection from %s\n", rem->h_name);
     
-    bzero(buf, sizeof buf); /* Initialize buffer */
-    if (read(newsock, buf, sizeof buf) < 0) { /* Receive message */
-        perror("read");
-        exit(1);
-     }
-     printf("Read string: %s\n", buf);
-    close(newsock);
+    bzero(buf, sizeof buf);
+    if (read(newsock, buf, sizeof buf) < 0) {
+      perror("read");
+      exit(1);
+    }
+    printf("Read string: %s\n", buf);
+    action = strtok(buf, " ");
+    if (strcmp(action, "GET")) {
+      action = strtok(buf, " ");
+    }
+    else if (strcmp(action, "HEAD")) {
+      action = strtok(buf, " ");
+    }
+    else if (strcmp(action, "DELETE")) {
+      action = strtok(buf, " ");
+    }
+    else {
+
+    }
   }
+   close(newsock);
   close(sock);
   return 0;
 }
