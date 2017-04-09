@@ -36,7 +36,41 @@ int openCon(int sock, struct sockaddr_in self, struct sockaddr_in server,
 	}
 
 	return sock;
+}
 
+char* fileExtension(char* method){
+	char* contenttype=NULL;
+	if (strcmp(strrchr(method, '.'), ".txt") == 0
+							|| strcmp(strrchr(method, '.'), ".sed") == 0
+							|| strcmp(strrchr(method, '.'), ".awk") == 0
+							|| strcmp(strrchr(method, '.'), ".c") == 0
+							|| strcmp(strrchr(method, '.'), ".h") == 0
+							|| strcmp(strrchr(method, '.'), ".java") == 0)
+						contenttype = "text/plain";
+					else if (strcmp(strrchr(method, '.'), ".html") == 0
+							|| strcmp(strrchr(method, '.'), ".htm") == 0)
+						contenttype = "text/html";
+					else if (strcmp(strrchr(method, '.'), ".css") == 0)
+						contenttype = "text/css";
+					else if (strcmp(strrchr(method, '.'), ".jpeg") == 0
+							|| strcmp(strrchr(method, '.'), ".jpg") == 0)
+						contenttype = "image/jpeg";
+					else if (strcmp(strrchr(method, '.'), ".gif") == 0)
+						contenttype = "image/gif";
+					else if (strcmp(strrchr(method, '.'), ".png") == 0)
+						contenttype = "image/png";
+					else if (strcmp(strrchr(method, '.'), ".pdf") == 0)
+						contenttype = "application/pdf";
+					else if (strcmp(strrchr(method, '.'), ".xml") == 0)
+						contenttype = "application/xml";
+					else if (strcmp(strrchr(method, '.'), ".zip") == 0)
+						contenttype = "application/zip";
+					else if (strcmp(strrchr(method, '.'), ".js") == 0)
+						contenttype = "application/javascript";
+					else
+						contenttype = "application/octet-stream";
+
+	return contenttype;
 }
 
 int main(int argc, char *argv[]) {
@@ -114,35 +148,8 @@ int main(int argc, char *argv[]) {
 				//  content[i++] = c;
 				fread(content, sizeof(char), fstat.st_size + 1, fp);
 				fclose(fp);
-				if (strcmp(strrchr(method, '.'), ".txt") == 0
-						|| strcmp(strrchr(method, '.'), ".sed") == 0
-						|| strcmp(strrchr(method, '.'), ".awk") == 0
-						|| strcmp(strrchr(method, '.'), ".c") == 0
-						|| strcmp(strrchr(method, '.'), ".h") == 0
-						|| strcmp(strrchr(method, '.'), ".java") == 0)
-					contenttype = "text/plain";
-				else if (strcmp(strrchr(method, '.'), ".html") == 0
-						|| strcmp(strrchr(method, '.'), ".htm") == 0)
-					contenttype = "text/html";
-				else if (strcmp(strrchr(method, '.'), ".css") == 0)
-					contenttype = "text/css";
-				else if (strcmp(strrchr(method, '.'), ".jpeg") == 0
-						|| strcmp(strrchr(method, '.'), ".jpg") == 0)
-					contenttype = "image/jpeg";
-				else if (strcmp(strrchr(method, '.'), ".gif") == 0)
-					contenttype = "image/gif";
-				else if (strcmp(strrchr(method, '.'), ".png") == 0)
-					contenttype = "image/png";
-				else if (strcmp(strrchr(method, '.'), ".pdf") == 0)
-					contenttype = "application/pdf";
-				else if (strcmp(strrchr(method, '.'), ".xml") == 0)
-					contenttype = "application/xml";
-				else if (strcmp(strrchr(method, '.'), ".zip") == 0)
-					contenttype = "application/zip";
-				else if (strcmp(strrchr(method, '.'), ".js") == 0)
-					contenttype = "application/javascript";
-				else
-					contenttype = "application/octet-stream";
+
+				contenttype=fileExtension(method);
 
 				sprintf(response,"HTTP/1.1 200 OK\r\nServer: localhost\r\nContent-Length: %zd\r\nConnection: keep-alive\r\nContent-Type: %s\r\n\r\n%s",
 						fstat.st_size, contenttype, content);
@@ -164,10 +171,6 @@ int main(int argc, char *argv[]) {
 					answerCode, serverName, contentLen, strlen(content501),
 					connection, contentType, content501);
 			write(newsock, response, strlen(response));
-//	   send(newsock,serverName,strlen(serverName),0);
-//	   send(newsock,strcat(contentLen,(char*)strlen(content501)),strlen(contentLen)+2,0);
-//	   send(newsock,strcat(connection,"keep-alive"),strlen(connection)+10,0);
-//	   send(newsock,strcat(contentType,"text/plain"),strlen(contentType)+10,0);
 
 			//write(newsock,buf501,strlen(buf501));
 
