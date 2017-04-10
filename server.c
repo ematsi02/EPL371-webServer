@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   struct hostent *rem;
   char word[30];
   char* method = NULL;
-  char buf[100000], response[100000], content[100000];
+  char buf[100000], response[100000], content[100000], request[100000];
   char c;
   FILE *fp;
   char *contenttype;
@@ -109,7 +109,8 @@ do {
     if (read(newsock, buf, sizeof(buf)) < 0) { 
       perror("read");
       exit(1);
-    }
+    } 
+    strncpy(request, buf, strlen(buf));
     printf("Read string: %s\n", buf);
 
     method = strtok(buf, " ");
@@ -160,11 +161,17 @@ do {
 
    } else if (strcmp(method, "DELETE") == 0) {
 
-			//printf("Read string: %s\n", buf);
-			printf("mpika sto delete");
-
 			method = strtok(NULL, " ");
 			memmove(method, method + 1, strlen(method));
+
+contenttype = fileExtension(method);
+
+      if (lstat(method, &fstat) < 0) {
+        sprintf(response, "HTTP/1.1 404 Not Found\r\nServer: localhost\r\nContent-Length: 20\r\nConnection: keep-alive\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n");
+        printf("%s", response);
+        write(newsock, response, strlen(response));
+      }
+      else {
 			if (remove(method) == -1) {
 				perror("remove");
 				exit(1);
@@ -173,15 +180,13 @@ do {
 				write(newsock, response, strlen(response));
 			        write(newsock, "\r\n", 1);
 			}
-
+}
 		} else {
    sprintf(response, "HTTP/1.1 501 Not Implemented\r\nServer: localhost\r\nContent-Length: 24\r\nConnection: keep-alive\r\nContent-Type: text/plain\r\n\r\nMethod not implemented!\r\n");
    printf("%s", response); 
    write(newsock, response, strlen(response));
  }
-printf("%s", buf);
-} while (strstr(buf, "Connection: close")==NULL);
-printf("EKSW APO WHILE\n");
+} while (strstr(request, "Connection: close")==NULL);
  close(newsock);
 }
 close(sock);
