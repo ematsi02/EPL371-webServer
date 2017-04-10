@@ -156,9 +156,21 @@ int main(int argc, char *argv[]) {
      }
 
    } else if (strcmp(method, "DELETE") == 0) {
-    printf("DELETE");
 
-  } else {
+			//printf("Read string: %s\n", buf);
+			printf("mpika sto delete");
+
+			method = strtok(NULL, " ");
+			memmove(method, method + 1, strlen(method));
+			if (remove(method) == -1) {
+				perror("remove");
+				exit(1);
+			} else {
+				sprintf(response,"HTTP/1.1 200 OK\r\nServer: myServer\r\nContent-Length: %d\r\nConnection: keep-alive\r\nContent-Type: %s\r\n\r\n", fstat.st_size, contenttype);
+				write(newsock, response, strlen(response));
+			}
+
+		} else {
    sprintf(response, "HTTP/1.1 501 Not Implemented\r\nServer: myServer\r\nContent-Length: 24\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\nMethod not implemented!\n");
    printf("%s", response); 
    write(newsock, response, strlen(response));
