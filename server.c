@@ -17,18 +17,18 @@ int openCon(int sock, struct sockaddr_in server, struct sockaddr *serverptr, int
     exit(1);
   }
 
-  server.sin_family = AF_INET; 
-  server.sin_addr.s_addr = htonl(INADDR_ANY); 
+  server.sin_family = AF_INET;
+  server.sin_addr.s_addr = htonl(INADDR_ANY);
   server.sin_port = htons(port);
   serverptr = (struct sockaddr *) &server;
   serverlen = sizeof(server);
 
-  if (bind(sock, serverptr, serverlen) < 0) { 
+  if (bind(sock, serverptr, serverlen) < 0) {
     perror("bind");
     exit(1);
   }
 
-  if (listen(sock, 5) < 0) { 
+  if (listen(sock, 5) < 0) {
     perror("listen");
     exit(1);
   }
@@ -38,7 +38,7 @@ int openCon(int sock, struct sockaddr_in server, struct sockaddr *serverptr, int
 
 char* fileExtension(char* method){
   char* contenttype = NULL;
-  
+
   if (strcmp(strrchr(method, '.'), ".txt") == 0
     || strcmp(strrchr(method, '.'), ".sed") == 0
     || strcmp(strrchr(method, '.'), ".awk") == 0
@@ -104,8 +104,8 @@ int main(int argc, char *argv[]) {
     }
     printf("Accepted connection from %s\n", rem->h_name);
 
-    bzero(buf, sizeof buf); 
-    if (read(newsock, buf, sizeof buf) < 0) { 
+    bzero(buf, sizeof buf);
+    if (read(newsock, buf, sizeof buf) < 0) {
       perror("read");
       exit(1);
     }
@@ -155,24 +155,30 @@ int main(int argc, char *argv[]) {
        write(newsock, response, strlen(response));
      }
 
-   } else if (strcmp(method, "DELETE") == 0) {
-
-			//printf("Read string: %s\n", buf);
-			printf("mpika sto delete");
-
+		} else if (strcmp(method, "DELETE") == 0) {
 			method = strtok(NULL, " ");
 			memmove(method, method + 1, strlen(method));
-			if (remove(method) == -1) {
-				perror("remove");
-				exit(1);
-			} else {
-				sprintf(response,"HTTP/1.1 200 OK\r\nServer: myServer\r\nContent-Length: %d\r\nConnection: keep-alive\r\nContent-Type: %s\r\n\r\n", fstat.st_size, contenttype);
+
+			if (lstat(method, &fstat) < 0) {
+				sprintf(response,
+						"HTTP/1.1 404 Not Found\r\nServer: myServer\r\nContent-Length: 20\r\nConnection: keep-alive\r\nContent-Type: text/plain\r\n\r\nDocument not found!");
+				printf("%s", response);
 				write(newsock, response, strlen(response));
+			} else {
+				if (remove(method) == -1) {
+					perror("remove");
+					exit(1);
+				} else {
+					sprintf(response,
+							"HTTP/1.1 200 OK\r\nServer: myServer\r\nContent-Length: %d\r\nConnection: keep-alive\r\nContent-Type: %s\r\n\r\n",
+							fstat.st_size, contenttype);
+					write(newsock, response, strlen(response));
+				}
 			}
 
 		} else {
    sprintf(response, "HTTP/1.1 501 Not Implemented\r\nServer: myServer\r\nContent-Length: 24\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\nMethod not implemented!\n");
-   printf("%s", response); 
+   printf("%s", response);
    write(newsock, response, strlen(response));
  }
 
