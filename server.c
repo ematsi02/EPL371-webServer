@@ -1,24 +1,5 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <limits.h>
-#include <sys/stat.h>
-#include <pthread.h>
-
-#define THREADS 40
-#define perror2(s, e) fprintf(stderr, "%s: %s\n", s, strerror(e))
-
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
-
-pthread_t newthread;
+#include "server.h"
+#include "queue.h"
 
 char* fileExtension(char* method) {
 char* contenttype = NULL;
