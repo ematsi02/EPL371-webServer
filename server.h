@@ -18,11 +18,24 @@
 #define THREADS 40
 #define perror2(s, e) fprintf(stderr, "%s: %s\n", s, strerror(e))
 
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
+pthread_mutex_t request_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t got_request = PTHREAD_COND_INITIALIZER;
+int num_of_requests = 0;
 
+struct request {
+   int id;
+   int newsock;
+   struct request* next;
+};
+
+struct request* head_request = NULL;
+struct request* tail_request = NULL;
+
+void add_request(int request_num, int newsock);
+struct request* get_request(pthread_mutex_t* p_mutex);
+void handle_request(struct request* a_request);
+void* handle_requests_loop();
 char* fileExtension(char* method);
-void accept_request(int newsock);
-int openCon(int sock, struct sockaddr_in server, struct sockaddr *serverptr, int serverlen, int port);
+int openCon(int port);
 
 #endif
