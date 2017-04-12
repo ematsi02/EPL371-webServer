@@ -4,12 +4,12 @@
 # 'make clean' removes all .o, executable and doxy log
 ########################################################
 
-PROJ = find# name of the project
+PROJ = server# name of the project
 CC = gcc # name of the compiler
 
 # define any compile-time flags
 CFLAGS = -g -Wall
-LFLAGS = -lm
+LFLAGS = -lm -lpthread
 
 # list of object files
 HEADERS = $(wildcard *.h)
