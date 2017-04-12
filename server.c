@@ -100,7 +100,7 @@ void handle_request(struct request* a_request) {
 
 			if (lstat(method, &fstat) < 0) {
 				sprintf(response,
-						"HTTP/1.1 404 Not Found\r\nServer: myServer\r\nContent-Length: 20\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n",
+						"HTTP/1.1 404 Not Found\r\nServer: localhost\r\nContent-Length: 20\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n",
 						connection);
 				printf("%s", response);
 				write(a_request->newsock, response, strlen(response));
@@ -110,7 +110,7 @@ void handle_request(struct request* a_request) {
 				fclose(fp);
 
 				sprintf(response,
-						"HTTP/1.1 200 OK\r\nServer: myServer\r\nContent-Length: %d\r\nConnection: %s\r\nContent-Type: %s\r\n\r\n",
+						"HTTP/1.1 200 OK\r\nServer: localhost\r\nContent-Length: %d\r\nConnection: %s\r\nContent-Type: %s\r\n\r\n",
 						fstat.st_size, connection, contenttype);
 
 				printf("%s", response);
@@ -126,13 +126,13 @@ void handle_request(struct request* a_request) {
 
 			if (lstat(method, &fstat) < 0) {
 				sprintf(response,
-						"HTTP/1.1 404 Not Found\r\nServer: myServer\r\nContent-Length: 20\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n",
+						"HTTP/1.1 404 Not Found\r\nServer: localhost\r\nContent-Length: 20\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n",
 						connection);
 				printf("%s", response);
 				write(a_request->newsock, response, strlen(response));
 			} else {
 				sprintf(response,
-						"HTTP/1.1 200 OK\r\nServer: myServer\r\nContent-Length: %d\r\nConnection: %s\r\nContent-Type: %s\r\n\r\n",
+						"HTTP/1.1 200 OK\r\nServer: localhost\r\nContent-Length: %d\r\nConnection: %s\r\nContent-Type: %s\r\n\r\n",
 						fstat.st_size, connection, contenttype);
 				printf("%s", response);
 				write(a_request->newsock, response, strlen(response));
@@ -148,7 +148,7 @@ void handle_request(struct request* a_request) {
 
 			if (lstat(method, &fstat) < 0) {
 				sprintf(response,
-						"HTTP/1.1 404 Not Found\r\nServer: myServer\r\nContent-Length: 20\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n",
+						"HTTP/1.1 404 Not Found\r\nServer: localhost\r\nContent-Length: 20\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nDocument not found!\r\n",
 						connection);
 				printf("%s", response);
 				write(a_request->newsock, response, strlen(response));
@@ -158,7 +158,7 @@ void handle_request(struct request* a_request) {
 					exit(1);
 				} else {
 					sprintf(response,
-							"HTTP/1.1 200 OK\r\nServer: myServer\r\nContent-Length: %d\r\nConnection: %s\r\nContent-Type: %s\r\n\r\n",
+							"HTTP/1.1 200 OK\r\nServer: localhost\r\nContent-Length: %d\r\nConnection: %s\r\nContent-Type: %s\r\n\r\n",
 							fstat.st_size, connection, contenttype);
 					write(a_request->newsock, response, strlen(response));
 					write(a_request->newsock, "\r\n", 1);
@@ -166,7 +166,7 @@ void handle_request(struct request* a_request) {
 			}
 		} else {
 			sprintf(response,
-					"HTTP/1.1 501 Not Implemented\r\nServer: myServer\r\nContent-Length: 24\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nMethod not implemented!\r\n",
+					"HTTP/1.1 501 Not Implemented\r\nServer: localhost\r\nContent-Length: 24\r\nConnection: %s\r\nContent-Type: text/plain\r\n\r\nMethod not implemented!\r\n",
 					connection);
 			printf("%s", response);
 			write(a_request->newsock, response, strlen(response));
@@ -204,6 +204,9 @@ void* handle_requests_loop() {
 char* fileExtension(char* method) {
 	char* contenttype = NULL;
 
+	#ifdef DEBUG
+		printf("File Extension is: %s",strrchr(method, '.'));
+	#endif
 	if (strcmp(strrchr(method, '.'), ".txt") == 0
 			|| strcmp(strrchr(method, '.'), ".sed") == 0
 			|| strcmp(strrchr(method, '.'), ".awk") == 0
@@ -234,6 +237,9 @@ char* fileExtension(char* method) {
 	else
 		contenttype = "application/octet-stream";
 
+	#ifdef DEBUG
+		printf("Content-Type is: %s",contenttype);
+	#endif
 	return contenttype;
 }
 
@@ -267,30 +273,16 @@ int openCon(int port) {
 }
 
 int main(int argc, char *argv[]) {
-	FILE *fp;
-	char s[42];
-	if ((fp = fopen("config.txt", "r")) == NULL) {
-		perror("fopen");
-		exit(1);
-	}
-	int sock, newsock, clientlen, port, threads, err, i;
-	for (i=1; i<=7; i++) {
-		if (i==4) 
-			fscanf(fp, "THREADS=%d", &threads);
-		else if (i==7)
-			fscanf(fp, "PORT=%d", &port);
-		else if (i==2 || i==5)
-			fscanf(fp, "\n");
-		else
-			fscanf(fp, "%[^\n]\n", s);
-	}
+	int sock, newsock, clientlen;
+	int port = 8080;
 	struct sockaddr_in client;
 	struct sockaddr *clientptr;
 	struct hostent *rem;
-	int thr_id[threads];
-	pthread_t p_threads[threads];
+	int err, i;
+	int thr_id[THREADS];
+	pthread_t p_threads[THREADS];
 
-	for (i = 0; i < threads; i++) {
+	for (i = 0; i < THREADS; i++) {
 		thr_id[i] = i;
 		if ((err = pthread_create(&p_threads[i], NULL, handle_requests_loop,
 		NULL)) != 0) {
