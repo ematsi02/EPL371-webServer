@@ -15,7 +15,6 @@
 #include <sys/stat.h>
 #include <pthread.h>
 
-#define THREADS 40
 #define perror2(s, e) fprintf(stderr, "%s: %s\n", s, strerror(e))
 
 pthread_mutex_t request_mutex = PTHREAD_MUTEX_INITIALIZER;
